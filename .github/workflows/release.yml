@@ -92,13 +92,18 @@ jobs:
     - name: Generate changelog
       id: changelog
       run: |
-        # Get commits since last tag (handle first release)
-        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        # Get the current tag being released
+        CURRENT_TAG="${{ steps.version.outputs.VERSION }}"
+        
+        # Get all tags sorted by version, excluding the current tag
+        LAST_TAG=$(git tag -l | grep -v "^${CURRENT_TAG}$" | sort -V | tail -n 1)
         
         if [ -n "$LAST_TAG" ]; then
+          echo "Found previous tag: $LAST_TAG"
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD)
           COMPARE_LINK="**Full Changelog**: https://github.com/${{ github.repository }}/compare/$LAST_TAG...${{ steps.version.outputs.VERSION }}"
         else
+          echo "No previous tag found, this is the first release"
           # First release - get all commits
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" --reverse)
           COMPARE_LINK="**Initial Release** 🎉"
