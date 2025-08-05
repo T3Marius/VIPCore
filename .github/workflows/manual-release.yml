@@ -43,20 +43,39 @@ jobs:
       run: |
         mkdir -p release-artifacts
         
-        # Copy main VIPCore files
-        if [ -d "VIPCore/bin/Release/net8.0" ]; then
-          cp -r VIPCore/bin/Release/net8.0/* release-artifacts/
-        fi
+        # Debug: Show the build outputs
+        echo "Checking build outputs..."
+        find . -name "*.dll" -type f
         
-        # Copy VIPCore API files to shared folder
-        mkdir -p release-artifacts/shared/VipCoreApi/
-        if [ -d "VIPCore-API/bin/Release/net8.0" ]; then
-          cp -r VIPCore-API/bin/Release/net8.0/* release-artifacts/shared/VipCoreApi/
+        # Check if BuildOutput exists and copy it
+        if [ -d "BuildOutput" ] && [ "$(ls -A BuildOutput)" ]; then
+          echo "Copying BuildOutput structure..."
+          cp -r BuildOutput/* release-artifacts/
+          echo "BuildOutput copied successfully!"
+          ls -la release-artifacts/
+        else
+          echo "BuildOutput not found! Falling back to bin directories..."
+          
+          # Copy main VIPCore files
+          if [ -d "VIPCore/bin/Release/net8.0" ]; then
+            mkdir -p release-artifacts/plugins
+            cp -r VIPCore/bin/Release/net8.0/* release-artifacts/plugins/VIPCore/
+          fi
+          
+          # Copy VIPCore API files to shared folder
+          mkdir -p release-artifacts/shared/VipCoreApi/
+          if [ -d "VIPCore-API/bin/Release/net8.0" ]; then
+            cp -r VIPCore-API/bin/Release/net8.0/* release-artifacts/shared/VipCoreApi/
+          fi
         fi
         
         # Remove unnecessary files
         find release-artifacts -name "*.pdb" -delete
         find release-artifacts -name "*.xml" -delete
+        
+        # Show what we have in release artifacts
+        echo "Release artifacts structure:"
+        find release-artifacts -type f
         
     - name: Create ZIP archive
       run: |

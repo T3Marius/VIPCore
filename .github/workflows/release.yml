@@ -37,32 +37,42 @@ jobs:
         
         # Debug: Show the build outputs
         echo "Checking build outputs..."
-        find . -name "bin" -type d
         find . -name "*.dll" -type f
         
-        # Copy entire VIPCore build output and rename to VIPCore
-        if [ -d "VIPCore/bin/Release/net8.0" ] && [ "$(ls -A VIPCore/bin/Release/net8.0)" ]; then
-          echo "Copying VIPCore build output..."
-          cp -r VIPCore/bin/Release/net8.0 release-artifacts/VIPCore
-          ls -la release-artifacts/VIPCore/
+        # Check if BuildOutput exists and copy it
+        if [ -d "BuildOutput" ] && [ "$(ls -A BuildOutput)" ]; then
+          echo "Copying BuildOutput structure..."
+          cp -r BuildOutput/* release-artifacts/
+          echo "BuildOutput copied successfully!"
+          ls -la release-artifacts/
         else
-          echo "VIPCore build output not found or empty!"
-          echo "Contents of VIPCore/bin:"
-          find VIPCore -name "bin" -exec ls -la {} \; 2>/dev/null || echo "No bin folder found"
-          exit 1
-        fi
-        
-        # Copy entire VIPCore-API build output to shared folder
-        if [ -d "VIPCore-API/bin/Release/net8.0" ] && [ "$(ls -A VIPCore-API/bin/Release/net8.0)" ]; then
-          echo "Copying VIPCore-API build output..."
-          mkdir -p release-artifacts/shared
-          cp -r VIPCore-API/bin/Release/net8.0 release-artifacts/shared/VipCoreApi
-          ls -la release-artifacts/shared/VipCoreApi/
-        else
-          echo "VIPCore-API build output not found or empty!"
-          echo "Contents of VIPCore-API/bin:"
-          find VIPCore-API -name "bin" -exec ls -la {} \; 2>/dev/null || echo "No bin folder found"
-          exit 1
+          echo "BuildOutput not found! Falling back to bin directories..."
+          
+          # Copy VIPCore build output
+          if [ -d "VIPCore/bin/Release/net8.0" ] && [ "$(ls -A VIPCore/bin/Release/net8.0)" ]; then
+            echo "Copying VIPCore build output..."
+            mkdir -p release-artifacts/plugins
+            cp -r VIPCore/bin/Release/net8.0 release-artifacts/plugins/VIPCore
+            ls -la release-artifacts/plugins/VIPCore/
+          else
+            echo "VIPCore build output not found or empty!"
+            echo "Contents of VIPCore/bin:"
+            find VIPCore -name "bin" -exec ls -la {} \; 2>/dev/null || echo "No bin folder found"
+            exit 1
+          fi
+          
+          # Copy VIPCore-API build output to shared folder
+          if [ -d "VIPCore-API/bin/Release/net8.0" ] && [ "$(ls -A VIPCore-API/bin/Release/net8.0)" ]; then
+            echo "Copying VIPCore-API build output..."
+            mkdir -p release-artifacts/shared
+            cp -r VIPCore-API/bin/Release/net8.0 release-artifacts/shared/VipCoreApi
+            ls -la release-artifacts/shared/VipCoreApi/
+          else
+            echo "VIPCore-API build output not found or empty!"
+            echo "Contents of VIPCore-API/bin:"
+            find VIPCore-API -name "bin" -exec ls -la {} \; 2>/dev/null || echo "No bin folder found"
+            exit 1
+          fi
         fi
         
         # Show what we have in release artifacts
