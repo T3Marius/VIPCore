@@ -94,11 +94,23 @@ jobs:
       run: |
         # Get the current tag being released
         CURRENT_TAG="${{ steps.version.outputs.VERSION }}"
+        echo "Current tag: $CURRENT_TAG"
         
-        # Get all tags sorted by version, excluding the current tag
-        LAST_TAG=$(git tag -l | grep -v "^${CURRENT_TAG}$" | sort -V | tail -n 1)
+        # List all tags for debugging
+        echo "All tags:"
+        git tag -l | sort
         
-        if [ -n "$LAST_TAG" ]; then
+        # Find the previous tag using git describe
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+        
+        # If git describe didn't work, try alternative method
+        if [ -z "$LAST_TAG" ]; then
+          echo "Git describe failed, trying alternative method..."
+          # Get all tags, exclude current, sort numerically, get the last one
+          LAST_TAG=$(git tag -l | grep -v "^${CURRENT_TAG}$" | sed 's/^v//' | sort -n -t. -k1,1 -k2,2 -k3,3 | tail -n 1 | sed 's/^/v/')
+        fi
+        
+        if [ -n "$LAST_TAG" ] && [ "$LAST_TAG" != "$CURRENT_TAG" ]; then
           echo "Found previous tag: $LAST_TAG"
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD)
           COMPARE_LINK="**Full Changelog**: https://github.com/${{ github.repository }}/compare/$LAST_TAG...${{ steps.version.outputs.VERSION }}"
@@ -108,6 +120,9 @@ jobs:
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" --reverse)
           COMPARE_LINK="**Initial Release** 🎉"
         fi
+        
+        echo "Generated changelog:"
+        echo "$CHANGELOG"
         
         # Write changelog to file
         cat << EOF > changelog.md
