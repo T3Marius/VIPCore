@@ -8,6 +8,9 @@ on:
       - 'docs/**'
       - '.github/**'
 
+permissions:
+  contents: write
+
 jobs:
   auto-version:
     runs-on: ubuntu-latest
@@ -24,30 +27,25 @@ jobs:
       with:
         dotnet-version: '8.0.x'
         
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.10.2
-      with:
-        versionSpec: '5.x'
-        
-    - name: Determine Version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v0.10.2
-      with:
-        useConfigFile: true
-        configFilePath: GitVersion.yml
-        
     - name: Create version tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         
-        # For new repos, start with v1.0.0 if no tags exist
+        # Get the latest tag
         LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
         
         if [ -z "$LATEST_TAG" ]; then
+          # No tags exist, start with v1.0.0
           NEW_TAG="v1.0.0"
         else
-          NEW_TAG="v${{ steps.gitversion.outputs.semVer }}"
+          # Extract version numbers and increment patch version
+          VERSION=${LATEST_TAG#v}  # Remove 'v' prefix
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          PATCH=$((PATCH + 1))
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
         fi
         
         # Check if tag already exists
@@ -56,7 +54,11 @@ jobs:
           exit 0
         fi
         
+        echo "Creating tag: $NEW_TAG"
         git tag "$NEW_TAG"
+        
+        # Push using the GitHub token
+        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
         git push origin "$NEW_TAG"
         
         echo "Created and pushed tag: $NEW_TAG"
