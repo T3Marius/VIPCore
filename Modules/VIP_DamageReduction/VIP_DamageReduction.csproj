@@ -10,10 +10,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="VIP_DamageReduction.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\..\VIPCore-API\VipCoreApi.csproj" />
 	</ItemGroup>
 

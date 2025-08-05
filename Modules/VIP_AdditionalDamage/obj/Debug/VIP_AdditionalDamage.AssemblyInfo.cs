@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VIP_AdditionalDamage")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+723fe262043feddd940cb8f5b224d4071fb65565")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1e6a023d6ace3ead40d29e5ba04b8c75420100c7")]
 [assembly: System.Reflection.AssemblyProductAttribute("VIP_AdditionalDamage")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VIP_AdditionalDamage")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

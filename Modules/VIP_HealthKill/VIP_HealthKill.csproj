@@ -9,9 +9,6 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<Compile Include="VIP_HealthKill.cs" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\VIPCore-API\VipCoreApi.csproj" />

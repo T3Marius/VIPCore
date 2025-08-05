@@ -10,10 +10,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="VIP_Armor.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <PackageReference Include="CounterStrikeSharp.API" Version="1.0.329" />
 	</ItemGroup>
 

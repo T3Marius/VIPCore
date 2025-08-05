@@ -19,10 +19,14 @@ jobs:
         dotnet-version: '8.0.x'
         
     - name: Restore dependencies
-      run: dotnet restore VIPCore.sln
+      run: |
+        dotnet restore VIPCore/VIPCore.csproj
+        dotnet restore VIPCore-API/VipCoreApi.csproj
       
     - name: Build solution
-      run: dotnet build VIPCore.sln --configuration Release --no-restore
+      run: |
+        dotnet build VIPCore/VIPCore.csproj --configuration Release --no-restore
+        dotnet build VIPCore-API/VipCoreApi.csproj --configuration Release --no-restore
       
     - name: Create build artifacts
       run: |
@@ -31,13 +35,9 @@ jobs:
         # Copy VIPCore main plugin
         cp -r VIPCore/bin/Release/net8.0/* release-artifacts/ 2>/dev/null || true
         
-        # Copy VIPCore API
-        cp -r VIPCore-API/bin/Release/net8.0/* release-artifacts/ 2>/dev/null || true
-        
-        # Copy all module plugins from BuildOutput
-        if [ -d "BuildOutput/plugins" ]; then
-          cp -r BuildOutput/plugins/* release-artifacts/ 2>/dev/null || true
-        fi
+        # Copy VIPCore API to shared folder
+        mkdir -p release-artifacts/shared/VipCoreApi/
+        cp -r VIPCore-API/bin/Release/net8.0/* release-artifacts/shared/VipCoreApi/ 2>/dev/null || true
         
     - name: Create ZIP archive
       run: |
