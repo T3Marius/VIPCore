@@ -1,0 +1,2 @@
+# This file ensures the BuildOutput directory is tracked by git
+# while allowing the contents to be ignored during development

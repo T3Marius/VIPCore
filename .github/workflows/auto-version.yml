@@ -1,0 +1,62 @@
+name: Auto Version and Release
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '.github/**'
+
+jobs:
+  auto-version:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for version calculation
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.10.2
+      with:
+        versionSpec: '5.x'
+        
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0.10.2
+      with:
+        useConfigFile: true
+        configFilePath: GitVersion.yml
+        
+    - name: Create version tag
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # For new repos, start with v1.0.0 if no tags exist
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        if [ -z "$LATEST_TAG" ]; then
+          NEW_TAG="v1.0.0"
+        else
+          NEW_TAG="v${{ steps.gitversion.outputs.semVer }}"
+        fi
+        
+        # Check if tag already exists
+        if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+          echo "Tag $NEW_TAG already exists, skipping release"
+          exit 0
+        fi
+        
+        git tag "$NEW_TAG"
+        git push origin "$NEW_TAG"
+        
+        echo "Created and pushed tag: $NEW_TAG"

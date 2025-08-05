@@ -1,0 +1,96 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.331
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore VIPCore.sln
+      
+    - name: Build solution
+      run: dotnet build VIPCore.sln --configuration Release --no-restore
+      
+    - name: Create build artifacts
+      run: |
+        mkdir -p release-artifacts
+        
+        # Copy VIPCore main plugin
+        cp -r VIPCore/bin/Release/net8.0/* release-artifacts/ 2>/dev/null || true
+        
+        # Copy VIPCore API
+        cp -r VIPCore-API/bin/Release/net8.0/* release-artifacts/ 2>/dev/null || true
+        
+        # Copy all module plugins from BuildOutput
+        if [ -d "BuildOutput/plugins" ]; then
+          cp -r BuildOutput/plugins/* release-artifacts/ 2>/dev/null || true
+        fi
+        
+    - name: Create ZIP archive
+      run: |
+        cd release-artifacts
+        zip -r ../VIPCore-${{ github.ref_name }}.zip . -x "*.pdb" "*.xml"
+        cd ..
+        
+    - name: Extract version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get commits since last tag (handle first release)
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        
+        if [ -n "$LAST_TAG" ]; then
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD)
+          COMPARE_LINK="**Full Changelog**: https://github.com/${{ github.repository }}/compare/$LAST_TAG...${{ steps.version.outputs.VERSION }}"
+        else
+          # First release - get all commits
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --reverse)
+          COMPARE_LINK="**Initial Release** 🎉"
+        fi
+        
+        # Write changelog to file
+        cat << EOF > changelog.md
+        ## What's Changed in ${{ steps.version.outputs.VERSION }}
+        
+        $CHANGELOG
+        
+        $COMPARE_LINK
+        EOF
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ steps.version.outputs.VERSION }}
+        body_path: changelog.md
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./VIPCore-${{ github.ref_name }}.zip
+        asset_name: VIPCore-${{ github.ref_name }}.zip
+        asset_content_type: application/zip

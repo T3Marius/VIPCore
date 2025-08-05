@@ -1,0 +1,89 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.331)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  manual-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore VIPCore.sln
+      
+    - name: Build solution
+      run: dotnet build VIPCore.sln --configuration Release --no-restore
+      
+    - name: Create build artifacts
+      run: |
+        mkdir -p release-artifacts
+        
+        # Copy main VIPCore files
+        if [ -d "VIPCore/bin/Release/net8.0" ]; then
+          cp -r VIPCore/bin/Release/net8.0/* release-artifacts/
+        fi
+        
+        # Copy VIPCore API files
+        if [ -d "VIPCore-API/bin/Release/net8.0" ]; then
+          cp -r VIPCore-API/bin/Release/net8.0/* release-artifacts/
+        fi
+        
+        # Copy BuildOutput plugins
+        if [ -d "BuildOutput" ]; then
+          cp -r BuildOutput/* release-artifacts/
+        fi
+        
+        # Remove unnecessary files
+        find release-artifacts -name "*.pdb" -delete
+        find release-artifacts -name "*.xml" -delete
+        
+    - name: Create ZIP archive
+      run: |
+        cd release-artifacts
+        zip -r ../VIPCore-v${{ github.event.inputs.version }}.zip .
+        cd ..
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        release_name: v${{ github.event.inputs.version }}
+        body: |
+          ## What's Changed in v${{ github.event.inputs.version }}
+          
+          - Manual release created
+          
+          Please refer to commit history for detailed changes.
+        draft: false
+        prerelease: ${{ github.event.inputs.prerelease }}
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./VIPCore-v${{ github.event.inputs.version }}.zip
+        asset_name: VIPCore-v${{ github.event.inputs.version }}.zip
+        asset_content_type: application/zip
