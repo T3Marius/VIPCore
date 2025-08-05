@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<OutputPath>$(ProjectDir)..\BuildOutput\plugins\VIPCore\</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.329" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="LangApi" Version="1.0.0" />
+    <PackageReference Include="MySqlConnector" Version="2.4.0" />
+    <PackageReference Include="Samboy063.Tomlet" Version="6.1.0" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\VIPCore-API\VipCoreApi.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Translations\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Reference Include="T3MenuSharedAPI">
+			<HintPath>T3MenuSharedAPI.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="CounterStrikeSharp.API">
+			<HintPath>CounterStrikeSharp.API.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Translations\" />
+	</ItemGroup>
+
+</Project>
