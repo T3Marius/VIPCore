@@ -11,3 +11,4 @@ C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_HealthKill\obj\Debug\VIP_Hea
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_HealthKill\obj\Debug\refint\VIP_HealthKill.dll
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_HealthKill\obj\Debug\VIP_HealthKill.pdb
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_HealthKill\obj\Debug\ref\VIP_HealthKill.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_HealthKill\obj\Debug\VIP_HealthKill.sourcelink.json

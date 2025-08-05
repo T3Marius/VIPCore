@@ -14,3 +14,4 @@ C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\ref\VIP_Bhop.
 C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.deps.json
 C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.dll
 C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.pdb
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.sourcelink.json

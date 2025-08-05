@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VIP_Bhop")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e1f502b3943367f357b74f21bedb94f62541df2e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+723fe262043feddd940cb8f5b224d4071fb65565")]
 [assembly: System.Reflection.AssemblyProductAttribute("VIP_Bhop")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VIP_Bhop")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

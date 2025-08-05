@@ -11,3 +11,4 @@ C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_AdditionalDamage\obj\Debug\V
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_AdditionalDamage\obj\Debug\refint\VIP_AdditionalDamage.dll
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_AdditionalDamage\obj\Debug\VIP_AdditionalDamage.pdb
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_AdditionalDamage\obj\Debug\ref\VIP_AdditionalDamage.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_AdditionalDamage\obj\Debug\VIP_AdditionalDamage.sourcelink.json

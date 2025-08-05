@@ -11,3 +11,4 @@ C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.dl
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\refint\VIP_Armor.dll
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.pdb
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\ref\VIP_Armor.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.sourcelink.json

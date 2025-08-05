@@ -10,7 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_HealthKill\VIP_HealthKill.cs" Link="VIP_HealthKill.cs" />
+		<Compile Include="VIP_HealthKill.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

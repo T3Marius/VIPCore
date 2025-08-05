@@ -10,7 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\VIP_Armor.cs" Link="VIP_Armor.cs" />
+		<Compile Include="VIP_Armor.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

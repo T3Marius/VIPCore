@@ -11,3 +11,4 @@ C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VI
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\refint\VIP_DamageReduction.dll
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.pdb
 C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\ref\VIP_DamageReduction.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.sourcelink.json

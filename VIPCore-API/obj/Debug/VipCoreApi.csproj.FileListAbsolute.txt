@@ -13,3 +13,4 @@ C:\Users\suira\Documents\GitHub\VIPCore\VIPCore-API\obj\Debug\ref\VipCoreApi.dll
 C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\shared\VipCoreApi\VipCoreApi.deps.json
 C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\shared\VipCoreApi\VipCoreApi.dll
 C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\shared\VipCoreApi\VipCoreApi.pdb
+C:\Users\suira\Documents\GitHub\VIPCore\VIPCore-API\obj\Debug\VipCoreApi.sourcelink.json
