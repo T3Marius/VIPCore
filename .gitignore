@@ -223,11 +223,15 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+.vs/
 
 # Custom ignores for this project
 # Keep BuildOutput structure but ignore contents during development
 BuildOutput/*
 !BuildOutput/.gitkeep
+
+# Personal files
+image.png
 
 # Important: Make sure these are NOT ignored
 !VIPCore/
