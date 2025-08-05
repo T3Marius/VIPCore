@@ -34,13 +34,33 @@ jobs:
     - name: Create build artifacts
       run: |
         mkdir -p release-artifacts
+        mkdir -p release-artifacts/shared/VipCoreApi
         
-        # Copy VIPCore main plugin
-        cp -r VIPCore/bin/Release/net8.0/* release-artifacts/ 2>/dev/null || true
+        # Copy VIPCore main plugin files
+        if [ -d "VIPCore/bin/Release/net8.0" ]; then
+          echo "Copying VIPCore files..."
+          cp VIPCore/bin/Release/net8.0/*.dll release-artifacts/ 2>/dev/null || true
+          cp VIPCore/bin/Release/net8.0/*.json release-artifacts/ 2>/dev/null || true
+          ls -la VIPCore/bin/Release/net8.0/
+        else
+          echo "VIPCore build output not found!"
+          exit 1
+        fi
         
         # Copy VIPCore API to shared folder
-        mkdir -p release-artifacts/shared/VipCoreApi/
-        cp -r VIPCore-API/bin/Release/net8.0/* release-artifacts/shared/VipCoreApi/ 2>/dev/null || true
+        if [ -d "VIPCore-API/bin/Release/net8.0" ]; then
+          echo "Copying VIPCore-API files..."
+          cp VIPCore-API/bin/Release/net8.0/*.dll release-artifacts/shared/VipCoreApi/ 2>/dev/null || true
+          cp VIPCore-API/bin/Release/net8.0/*.json release-artifacts/shared/VipCoreApi/ 2>/dev/null || true
+          ls -la VIPCore-API/bin/Release/net8.0/
+        else
+          echo "VIPCore-API build output not found!"
+          exit 1
+        fi
+        
+        # Show what we have in release artifacts
+        echo "Release artifacts contents:"
+        find release-artifacts -type f
         
     - name: Create ZIP archive
       run: |
