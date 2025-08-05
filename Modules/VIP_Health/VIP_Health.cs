@@ -26,7 +26,6 @@ public class VIP_Health : IVipFeatureBase
 
     public void OnFeatureLoaded()
     {
-        // Feature loaded logic here
 
     }
 
