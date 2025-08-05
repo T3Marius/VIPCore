@@ -108,11 +108,6 @@ jobs:
         **Download the latest version above** ⬆️
         EOF
         
-        $CHANGELOG
-        
-        **Download the latest version above** ⬆️
-        EOF
-        
     - name: Create GitHub Release
       uses: actions/create-release@v1
       id: create_release
