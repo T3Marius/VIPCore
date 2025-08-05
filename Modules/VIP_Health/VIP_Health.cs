@@ -24,10 +24,7 @@ public class VIP_Health : IVipFeatureBase
     public string FeatureName => "FeatureName";
     private IVipCoreApi VipApi => VIPHealth.VipApi;
 
-    public void OnFeatureLoaded()
-    {
-
-    }
+    public void OnFeatureLoaded() { }
 
     public VIP_Health(BasePlugin plugin)
     {
