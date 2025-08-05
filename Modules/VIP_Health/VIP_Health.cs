@@ -43,7 +43,6 @@ public class VIP_Health : IVipFeatureBase
             return HookResult.Continue;
 
         var health = VipApi.GetFeatureValue<int>(player.SteamID, FeatureName)!.Value;
-
         if (health > 0)
         {
             Server.NextFrame(() =>
