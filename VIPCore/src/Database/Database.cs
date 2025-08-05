@@ -170,48 +170,48 @@ public static class Database
         {
             playerName = await Lib.GetPlayerNameFromSteamID(steamId);
         }
+        try
+        {
+            using MySqlConnection connection = await ConnectAsync();
+            using MySqlTransaction transaction = await connection.BeginTransactionAsync();
+
+            DateTime dateAdded = DateTime.UtcNow;
+            DateTime dateExpire = dateAdded.Add(duration);
+
             try
             {
-                using MySqlConnection connection = await ConnectAsync();
-                using MySqlTransaction transaction = await connection.BeginTransactionAsync();
-
-                DateTime dateAdded = DateTime.UtcNow;
-                DateTime dateExpire = dateAdded.Add(duration);
-
-                try
-                {
-                    int rowsAffected = await connection.ExecuteAsync(@"
+                int rowsAffected = await connection.ExecuteAsync(@"
             INSERT INTO vip_users (SteamID, PlayerName, `Group`, DateAdded, DateExpire)
             VALUES (@SteamID, @PlayerName, @Group, @DateAdded, @DateExpire)",
-                        new
-                        {
-                            SteamID = steamId,
-                            PlayerName = playerName,
-                            Group = group,
-                            DateAdded = dateAdded,
-                            DateExpire = dateExpire
-                        }, transaction: transaction);
+                    new
+                    {
+                        SteamID = steamId,
+                        PlayerName = playerName,
+                        Group = group,
+                        DateAdded = dateAdded,
+                        DateExpire = dateExpire
+                    }, transaction: transaction);
 
-                    await transaction.CommitAsync();
-                    return rowsAffected > 0;
-                }
-                catch (MySqlException ex) when (ex.Number == 1062)
-                {
-                    await transaction.RollbackAsync();
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    VIPCore.Instance.Logger.LogError($"Failed to add VIP for SteamID {steamId}: {ex.Message}");
-                    throw;
-                }
+                await transaction.CommitAsync();
+                return rowsAffected > 0;
+            }
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                await transaction.RollbackAsync();
+                return false;
             }
             catch (Exception ex)
             {
-                VIPCore.Instance.Logger.LogError($"Database connection failed while adding VIP for SteamID {steamId}: {ex.Message}");
-                return false;
+                await transaction.RollbackAsync();
+                VIPCore.Instance.Logger.LogError($"Failed to add VIP for SteamID {steamId}: {ex.Message}");
+                throw;
             }
+        }
+        catch (Exception ex)
+        {
+            VIPCore.Instance.Logger.LogError($"Database connection failed while adding VIP for SteamID {steamId}: {ex.Message}");
+            return false;
+        }
     }
 
     private static async Task<bool> UpdateVipAsync(ulong steamId, string group, TimeSpan duration)
@@ -441,6 +441,12 @@ public static class Database
             throw new ArgumentException("Group cannot be null or empty.", nameof(group));
         }
 
+        // Double-check if already received to prevent race conditions
+        if (await HasReceivedFreeVipAsync(steamId, group))
+        {
+            return false; // Already received, don't add again
+        }
+
         string playerName;
         CCSPlayerController? player = Utilities.GetPlayerFromSteamId(steamId);
 
@@ -463,8 +469,9 @@ public static class Database
 
             try
             {
+                // Use INSERT IGNORE to prevent duplicate key errors
                 int rowsAffected = await connection.ExecuteAsync(@"
-                    INSERT INTO free_vips (SteamID, GroupName, PlayerName, DateAdded, DateExpire)
+                    INSERT IGNORE INTO free_vips (SteamID, GroupName, PlayerName, DateAdded, DateExpire)
                     VALUES (@SteamID, @GroupName, @PlayerName, @DateAdded, @DateExpire)",
                     new
                     {
@@ -476,7 +483,21 @@ public static class Database
                     }, transaction: transaction);
 
                 await transaction.CommitAsync();
-                return rowsAffected > 0;
+
+                // If rowsAffected is 0, it means the record already existed
+                if (rowsAffected == 0)
+                {
+                    VIPCore.Instance.Logger.LogWarning($"Free VIP record already exists for SteamID {steamId} and group {group}");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (MySqlException ex) when (ex.Number == 1062) // Duplicate entry error
+            {
+                await transaction.RollbackAsync();
+                VIPCore.Instance.Logger.LogWarning($"Duplicate free VIP record attempted for SteamID {steamId} and group {group}");
+                return false;
             }
             catch (Exception ex)
             {

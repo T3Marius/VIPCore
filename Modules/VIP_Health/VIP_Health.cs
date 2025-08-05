@@ -21,7 +21,7 @@ public class VIPHealth : BasePlugin
 public class VIP_Health : IVipFeatureBase
 {
     private readonly BasePlugin _plugin;
-    public string FeatureName => "FeatureName";
+    public string FeatureName => "Health";
     private IVipCoreApi VipApi => VIPHealth.VipApi;
 
     public void OnFeatureLoaded() { }
@@ -46,11 +46,14 @@ public class VIP_Health : IVipFeatureBase
 
         if (health > 0)
         {
-            player.PlayerPawn.Value.Health = health;
-            player.PlayerPawn.Value.MaxHealth = player.PlayerPawn.Value.Health;
+            Server.NextFrame(() =>
+            {
+                player.PlayerPawn.Value.Health = health;
+                player.PlayerPawn.Value.MaxHealth = player.PlayerPawn.Value.Health;
 
-            Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
-            Utilities.SetStateChanged(player, "CBaseEntity", "m_iMaxHealth");
+                Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
+                Utilities.SetStateChanged(player, "CBaseEntity", "m_iMaxHealth");
+            });
         }
 
         return HookResult.Continue;

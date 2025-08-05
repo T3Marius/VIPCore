@@ -19,7 +19,7 @@ public static class Commands
         {
             AddCmd($"css_{cmd}", "Opens the VIP Menu", (p, info) => VIPMenu.Display(p!));
         }
-        foreach(var cmd in CmdConfig.AddVip)
+        foreach (var cmd in CmdConfig.AddVip)
         {
             AddCmd($"css_{cmd}", "Adds a vip", Command_AddVip);
         }
@@ -69,12 +69,14 @@ public static class Commands
         if (player == null)
             return;
 
+        // First check if player is already VIP
         if (VIPManager.IsPlayerVip(player.SteamID))
         {
             player.SendChatLocalizedMessage("vip.AlreadyVip");
             return;
         }
 
+        // Get available groups (this checks the database for what they haven't received)
         var avaliableGroups = Database.GetAvailableFreeVipGroups(player.SteamID);
 
         if (avaliableGroups.Count == 0)
@@ -107,26 +109,41 @@ public static class Commands
                 };
                 ulong steamId = p.SteamID;
 
+                // Double-check if player already received this free VIP (prevent race conditions)
                 if (Database.HasReceivedFreeVip(steamId, selectedGroup))
                 {
                     p.SendChatLocalizedMessage("vip.AlreadyReceivedFreeVip", selectedGroup);
                     return;
                 }
 
+                // Double-check if player is already VIP
                 if (VIPManager.IsPlayerVip(p.SteamID))
                 {
                     p.SendChatLocalizedMessage("vip.AlreadyVip");
                     return;
                 }
 
-                bool succes = VIPManager.AddPlayerVip(p.SteamID, selectedGroup, duration);
-
-                if (succes)
+                // First, add the free VIP record to prevent duplicate claims
+                bool recordAdded = Database.AddFreeVipRecord(steamId, selectedGroup, duration);
+                if (!recordAdded)
                 {
-                    Database.AddFreeVipRecord(steamId, selectedGroup, duration);
+                    p.SendChatLocalizedMessage("vip.AlreadyReceivedFreeVip", selectedGroup);
+                    return;
+                }
 
+                // Then try to add the VIP
+                bool vipAdded = VIPManager.AddPlayerVip(p.SteamID, selectedGroup, duration);
+
+                if (vipAdded)
+                {
                     int minutes = (int)duration.TotalMinutes;
                     p.SendChatLocalizedMessage("vip.FreeVipGranted", selectedGroup, minutes);
+                }
+                else
+                {
+                    // If VIP addition failed, we should ideally remove the record, but for safety we'll keep it
+                    // to prevent future attempts (since something went wrong)
+                    p.SendChatLocalizedMessage("vip.AlreadyVip");
                 }
 
             });
