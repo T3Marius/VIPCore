@@ -1,0 +1,13 @@
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_DamageReduction\VIP_DamageReduction.deps.json
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_DamageReduction\VIP_DamageReduction.dll
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_DamageReduction\VIP_DamageReduction.pdb
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.csproj.AssemblyReference.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.AssemblyInfoInputs.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.AssemblyInfo.cs
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.csproj.CoreCompileInputs.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_Dama.FF965247.Up2Date
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\refint\VIP_DamageReduction.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\VIP_DamageReduction.pdb
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\obj\Debug\ref\VIP_DamageReduction.dll

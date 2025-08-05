@@ -1,0 +1,16 @@
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.deps.json
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.pdb
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.csproj.AssemblyReference.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.AssemblyInfoInputs.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.AssemblyInfo.cs
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.csproj.CoreCompileInputs.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.csproj.Up2Date
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\refint\VIP_Bhop.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\VIP_Bhop.pdb
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Bhop\obj\Debug\ref\VIP_Bhop.dll
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.deps.json
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.dll
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Bhop\VIP_Bhop.pdb

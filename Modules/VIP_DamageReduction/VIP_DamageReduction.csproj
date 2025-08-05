@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<OutputPath>$(ProjectDir)..\..\BuildOutput\plugins\VIP_DamageReduction\</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_DamageReduction\VIP_DamageReduction.cs" Link="VIP_DamageReduction.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\VIPCore-API\VipCoreApi.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CounterStrikeSharp.API" Version="1.0.329" />
+	</ItemGroup>
+
+</Project>
+

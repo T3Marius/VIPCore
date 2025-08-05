@@ -1,0 +1,13 @@
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Armor\VIP_Armor.deps.json
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Armor\VIP_Armor.dll
+C:\Users\suira\Documents\GitHub\VIPCore\BuildOutput\plugins\VIP_Armor\VIP_Armor.pdb
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.csproj.AssemblyReference.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.AssemblyInfoInputs.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.AssemblyInfo.cs
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.csproj.CoreCompileInputs.cache
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.csproj.Up2Date
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\refint\VIP_Armor.dll
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\VIP_Armor.pdb
+C:\Users\suira\Documents\GitHub\VIPCore\Modules\VIP_Armor\obj\Debug\ref\VIP_Armor.dll

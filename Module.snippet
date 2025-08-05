@@ -1,0 +1,58 @@
+<CodeSnippet Format="1.0.0">
+  <Header>
+    <Title>ExampleModule Snippet</Title>
+    <Shortcut>vs</Shortcut>
+    <Description>Creates a basic VIPCore plugin module template</Description>
+    <Author>YourName</Author>
+  </Header>
+  <Snippet>
+    <Code Language="csharp"><![CDATA[
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API;
+using System.Text.Json;
+using VipCoreApi;
+
+namespace VIPCore;
+
+public class $classname$ : BasePlugin
+{
+    public override string ModuleAuthor => "$author$";
+    public override string ModuleName => "$modulename$";
+    public override string ModuleVersion => "1.0.0";
+    public static IVipCoreApi VipApi = null!;
+    
+    public override void OnAllPluginsLoaded(bool hotReload)
+    {
+        VipApi = IVipCoreApi.Capability.Get() ?? throw new Exception("VipApi not found");
+        VipApi.RegisterFeature(new $featureclass$(this));
+    }
+}
+
+public class $featureclass$ : IVipFeatureBase
+{
+    private readonly BasePlugin _plugin;
+    public string FeatureName => "$featurename$";
+    private IVipCoreApi VipApi => $classname$.VipApi;
+
+    public void OnFeatureLoaded()
+    {
+        // Feature loaded logic here
+    }
+
+    public $featureclass$(BasePlugin plugin)
+    {
+        _plugin = plugin;
+        // _plugin.RegisterEventHandler<EventPlayerSpawn>(OnPlayerSpawn);
+    }
+
+    // Example of an empty event handler
+    /*
+    private HookResult OnPlayerSpawn(EventPlayerSpawn @event, GameEventInfo info)
+    {
+        return HookResult.Continue;
+    }
+    */
+}
+    ]]></Code>
+  </Snippet>
+</CodeSnippet>
