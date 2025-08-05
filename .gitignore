@@ -12,19 +12,19 @@
 *.userosscache
 *.sln.docstates
 
-# Build results
+# Build results (but allow build process to create them)
 [Dd]ebug/
 [Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
 x64/
 x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
-[Bb]in/
-[Oo]bj/
 [Ll]og/
+
+# Build output directories (exclude contents but allow folders to be created)
+**/bin/
+**/obj/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
