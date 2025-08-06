@@ -635,7 +635,7 @@ public static class Database
         }
     }
 
-    private static async Task RemoveExpiredFreeVipsAsync()
+    public static async Task RemoveExpiredFreeVipsAsync()
     {
         try
         {
