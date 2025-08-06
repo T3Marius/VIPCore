@@ -66,90 +66,63 @@ public static class Commands
     }
     private static void Command_FreeVip(CCSPlayerController? player, CommandInfo info)
     {
-        if (player == null)
+        if (player == null || !player.IsValid || player.IsBot)
             return;
 
-        // First check if player is already VIP
         if (VIPManager.IsPlayerVip(player.SteamID))
         {
             player.SendChatLocalizedMessage("vip.AlreadyVip");
             return;
         }
 
-        // Get available groups (this checks the database for what they haven't received)
-        var avaliableGroups = Database.GetAvailableFreeVipGroups(player.SteamID);
 
-        if (avaliableGroups.Count == 0)
+        var allFreeVipGroups = new Dictionary<string, (string TranslationKey, int DurationMinutes)>
+        {
+            { "SILVER-VIP", ("vip.FreeVipSilver", 20) },
+            { "GOLD-VIP", ("vip.FreeVipGold", 15) },
+            { "PLATINUM-VIP", ("vip.FreeVipPlatinum", 10) }
+        };
+
+        var usedGroups = Database.GetUsedFreeVipGroups(player.SteamID);
+
+        var availableGroups = allFreeVipGroups
+            .Where(kvp => !usedGroups.Contains(kvp.Key))
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        if (availableGroups.Count == 0)
         {
             player.SendChatLocalizedMessage("vip.NoFreeVipGroups");
             return;
         }
 
-        IT3Menu menu = MenuManager.CreateMenu(LangApi.GetPlayerTranslation(player, Instance.ModuleName, "vip.FreeVipTitle"));
+        var menuTitle = LangApi.GetPlayerTranslation(player, Instance.ModuleName, "vip.FreeVipTitle");
+        IT3Menu menu = MenuManager.CreateMenu(menuTitle);
 
-        foreach (var group in avaliableGroups)
+        foreach (var group in availableGroups)
         {
-            string displayText = group switch
+            string groupName = group.Key;
+            string translationKey = group.Value.TranslationKey;
+            int duration = group.Value.DurationMinutes;
+
+            string menuText = LangApi.GetPlayerTranslation(player, Instance.ModuleName, translationKey);
+
+            menu.AddOption(menuText, (p, option) =>
             {
-                "SILVER-VIP" => LangApi.GetPlayerTranslation(player, Instance.ModuleName, "vip.FreeVipSilver"),
-                "GOLD-VIP" => LangApi.GetPlayerTranslation(player, Instance.ModuleName, "vip.FreeVipGold"),
-                "PLATINUM-VIP" => LangApi.GetPlayerTranslation(player, Instance.ModuleName, "vip.FreeVipPlatinum"),
-                _ => group
-            };
+                if (!p.IsValid) return;
 
-            menu.AddOption(displayText, (p, o) =>
-            {
-                var selectedGroup = group;
-                TimeSpan duration = selectedGroup switch
-                {
-                    "SILVER-VIP" => TimeSpan.FromMinutes(20),
-                    "GOLD-VIP" => TimeSpan.FromMinutes(15),
-                    "PLATINUM-VIP" => TimeSpan.FromMinutes(10),
-                    _ => TimeSpan.FromMinutes(10)
-                };
-                ulong steamId = p.SteamID;
+                bool success = Database.GrantFreeVip(p.SteamID, groupName, TimeSpan.FromMinutes(duration));
 
-                // Double-check if player already received this free VIP (prevent race conditions)
-                if (Database.HasReceivedFreeVip(steamId, selectedGroup))
+                if (success)
                 {
-                    p.SendChatLocalizedMessage("vip.AlreadyReceivedFreeVip", selectedGroup);
-                    return;
+                    string friendlyGroupName = menuText.Split('(')[0].Trim();
+                    p.SendChatLocalizedMessage("vip.FreeVipGranted", friendlyGroupName, duration);
                 }
 
-                // Double-check if player is already VIP
-                if (VIPManager.IsPlayerVip(p.SteamID))
-                {
-                    p.SendChatLocalizedMessage("vip.AlreadyVip");
-                    return;
-                }
-
-                // First, add the free VIP record to prevent duplicate claims
-                bool recordAdded = Database.AddFreeVipRecord(steamId, selectedGroup, duration);
-                if (!recordAdded)
-                {
-                    p.SendChatLocalizedMessage("vip.AlreadyReceivedFreeVip", selectedGroup);
-                    return;
-                }
-
-                // Then try to add the VIP
-                bool vipAdded = VIPManager.AddPlayerVip(p.SteamID, selectedGroup, duration);
-
-                if (vipAdded)
-                {
-                    int minutes = (int)duration.TotalMinutes;
-                    p.SendChatLocalizedMessage("vip.FreeVipGranted", selectedGroup, minutes);
-                }
-                else
-                {
-                    // If VIP addition failed, we should ideally remove the record, but for safety we'll keep it
-                    // to prevent future attempts (since something went wrong)
-                    p.SendChatLocalizedMessage("vip.AlreadyVip");
-                }
-
+                MenuManager.CloseMenu(p);
             });
         }
-        MenuManager.OpenMainMenu(player, menu);
 
+        MenuManager.OpenMainMenu(player, menu);
     }
     private static void Command_BuyVip(CCSPlayerController? player, CommandInfo info)
     {

@@ -114,8 +114,16 @@ public static class Database
                         DateAdded DATETIME NOT NULL,
                         DateExpire DATETIME NOT NULL,
                         PRIMARY KEY (id),
-                        UNIQUE KEY unique_player_group (SteamID, GroupName),
-                        INDEX idx_steamid (SteamID)
+                        UNIQUE KEY SteamID (SteamID)
+                );", transaction: transaction);
+
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS used_free_vips (
+                        id INT NOT NULL AUTO_INCREMENT,
+                        SteamID BIGINT UNSIGNED NOT NULL,
+                        GroupName VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+                        PRIMARY KEY (id),
+                        UNIQUE KEY unique_player_group (SteamID, GroupName)
                 );", transaction: transaction);
 
                 await transaction.CommitAsync();
@@ -414,14 +422,15 @@ public static class Database
             return new Dictionary<string, FeatureState>();
         }
     }
-    private static async Task<bool> HasReceivedFreeVipAsync(ulong steamId, string group)
+
+    private static async Task<bool> HasUsedFreeVipAsync(ulong steamId, string group)
     {
         try
         {
             using MySqlConnection connection = await ConnectAsync();
 
             var result = await connection.QueryFirstOrDefaultAsync<int>(@"
-                SELECT COUNT(*) FROM free_vips 
+                SELECT COUNT(*) FROM used_free_vips 
                 WHERE SteamID = @SteamID AND GroupName = @GroupName",
                 new { SteamID = steamId, GroupName = group });
 
@@ -429,49 +438,85 @@ public static class Database
         }
         catch (Exception ex)
         {
-            VIPCore.Instance.Logger.LogError($"Failed to check free VIP history for SteamID {steamId}: {ex.Message}");
-            return true; // Return true to prevent giving VIP on error
+            VIPCore.Instance.Logger.LogError($"Failed to check used free VIP for SteamID {steamId}: {ex.Message}");
+            return true;
+        }
+    }
+
+    private static async Task<bool> AddUsedFreeVipAsync(ulong steamId, string group)
+    {
+        try
+        {
+            using MySqlConnection connection = await ConnectAsync();
+            using MySqlTransaction transaction = await connection.BeginTransactionAsync();
+
+            string playerName;
+            CCSPlayerController? player = Utilities.GetPlayerFromSteamId(steamId);
+
+            if (player != null && player.Connected == PlayerConnectedState.PlayerConnected)
+            {
+                playerName = player.PlayerName;
+            }
+            else
+            {
+                playerName = "Unknown Player";
+            }
+
+            try
+            {
+                int rowsAffected = await connection.ExecuteAsync(@"
+                    INSERT IGNORE INTO used_free_vips (SteamID, GroupName, PlayerName)
+                    VALUES (@SteamID, @GroupName, @PlayerName)",
+                    new
+                    {
+                        SteamID = steamId,
+                        GroupName = group,
+                        PlayerName = playerName
+                    }, transaction: transaction);
+
+                await transaction.CommitAsync();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                VIPCore.Instance.Logger.LogError($"Failed to add used free VIP record for SteamID {steamId}: {ex.Message}");
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            VIPCore.Instance.Logger.LogError($"Database connection failed while adding used free VIP record for SteamID {steamId}: {ex.Message}");
+            return false;
         }
     }
 
     private static async Task<bool> AddFreeVipRecordAsync(ulong steamId, string group, TimeSpan duration)
     {
-        if (string.IsNullOrEmpty(group))
-        {
-            throw new ArgumentException("Group cannot be null or empty.", nameof(group));
-        }
-
-        // Double-check if already received to prevent race conditions
-        if (await HasReceivedFreeVipAsync(steamId, group))
-        {
-            return false; // Already received, don't add again
-        }
-
-        string playerName;
-        CCSPlayerController? player = Utilities.GetPlayerFromSteamId(steamId);
-
-        if (player != null && player.Connected == PlayerConnectedState.PlayerConnected)
-        {
-            playerName = player.PlayerName;
-        }
-        else
-        {
-            playerName = "Unknown Player";
-        }
-
         try
         {
             using MySqlConnection connection = await ConnectAsync();
             using MySqlTransaction transaction = await connection.BeginTransactionAsync();
+
+            string playerName;
+            CCSPlayerController? player = Utilities.GetPlayerFromSteamId(steamId);
+
+            if (player != null && player.Connected == PlayerConnectedState.PlayerConnected)
+            {
+                playerName = player.PlayerName;
+            }
+            else
+            {
+                playerName = "Unknown Player";
+            }
 
             DateTime dateAdded = DateTime.UtcNow;
             DateTime dateExpire = dateAdded.Add(duration);
 
             try
             {
-                // Use INSERT IGNORE to prevent duplicate key errors
                 int rowsAffected = await connection.ExecuteAsync(@"
-                    INSERT IGNORE INTO free_vips (SteamID, GroupName, PlayerName, DateAdded, DateExpire)
+                    INSERT INTO free_vips (SteamID, GroupName, PlayerName, DateAdded, DateExpire)
                     VALUES (@SteamID, @GroupName, @PlayerName, @DateAdded, @DateExpire)",
                     new
                     {
@@ -483,21 +528,7 @@ public static class Database
                     }, transaction: transaction);
 
                 await transaction.CommitAsync();
-
-                // If rowsAffected is 0, it means the record already existed
-                if (rowsAffected == 0)
-                {
-                    VIPCore.Instance.Logger.LogWarning($"Free VIP record already exists for SteamID {steamId} and group {group}");
-                    return false;
-                }
-
-                return true;
-            }
-            catch (MySqlException ex) when (ex.Number == 1062) // Duplicate entry error
-            {
-                await transaction.RollbackAsync();
-                VIPCore.Instance.Logger.LogWarning($"Duplicate free VIP record attempted for SteamID {steamId} and group {group}");
-                return false;
+                return rowsAffected > 0;
             }
             catch (Exception ex)
             {
@@ -513,26 +544,6 @@ public static class Database
         }
     }
 
-    public static async Task RemoveExpiredFreeVipsAsync()
-    {
-        try
-        {
-            using MySqlConnection connection = await ConnectAsync();
-            int rowsAffected = await connection.ExecuteAsync(@"
-                DELETE FROM free_vips WHERE DateExpire <= @Now",
-                new { Now = DateTime.UtcNow });
-
-            if (rowsAffected > 0)
-            {
-                VIPCore.Instance.Logger.LogInformation($"Removed {rowsAffected} expired free VIP records.");
-            }
-        }
-        catch (Exception ex)
-        {
-            VIPCore.Instance.Logger.LogError($"Failed to remove expired Free VIPs: {ex.Message}");
-        }
-    }
-
     private static async Task<List<string>> GetAvailableFreeVipGroupsAsync(ulong steamId)
     {
         var allGroups = new List<string> { "SILVER-VIP", "GOLD-VIP", "PLATINUM-VIP" };
@@ -542,7 +553,7 @@ public static class Database
         {
             foreach (var group in allGroups)
             {
-                if (!await HasReceivedFreeVipAsync(steamId, group))
+                if (!await HasUsedFreeVipAsync(steamId, group))
                 {
                     availableGroups.Add(group);
                 }
@@ -555,44 +566,129 @@ public static class Database
 
         return availableGroups;
     }
-
-    public static bool HasReceivedFreeVip(ulong steamId, string group)
+    private static async Task<bool> GrantFreeVipAsync(ulong steamId, string group, TimeSpan duration)
     {
+        var player = Utilities.GetPlayerFromSteamId(steamId);
+        if (player == null || !player.IsValid || player.IsBot) return false;
+
+        string playerName = player.PlayerName;
+
         try
         {
-            return HasReceivedFreeVipAsync(steamId, group).GetAwaiter().GetResult();
+            using var connection = await ConnectAsync();
+            using var transaction = await connection.BeginTransactionAsync();
+
+            try
+            {
+                await connection.ExecuteAsync(@"
+                    INSERT IGNORE INTO used_free_vips (SteamID, GroupName) VALUES (@SteamID, @GroupName);",
+                    new { SteamID = steamId, GroupName = group }, transaction: transaction);
+
+                DateTime dateAdded = DateTime.UtcNow;
+                DateTime dateExpire = dateAdded.Add(duration);
+                await connection.ExecuteAsync(@"
+                    INSERT INTO free_vips (SteamID, GroupName, PlayerName, DateAdded, DateExpire)
+                    VALUES (@SteamID, @GroupName, @PlayerName, @DateAdded, @DateExpire)
+                    ON DUPLICATE KEY UPDATE GroupName = @GroupName, DateAdded = @DateAdded, DateExpire = @DateExpire;",
+                    new { SteamID = steamId, GroupName = group, PlayerName = playerName, DateAdded = dateAdded, DateExpire = dateExpire },
+                    transaction: transaction);
+
+                await transaction.CommitAsync();
+
+                Server.NextFrame(() =>
+                {
+                    if (player.IsValid)
+                    {
+                        VIPManager.AddPlayerVip(steamId, group, duration);
+                    }
+                });
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                VIPCore.Instance.Logger.LogError($"Failed to grant free VIP transaction for SteamID {steamId}: {ex.Message}");
+                return false;
+            }
         }
         catch (Exception ex)
         {
-            VIPCore.Instance.Logger.LogError($"Failed to check free VIP history for SteamID {steamId}: {ex.Message}");
-            return true;
-        }
-    }
-
-    public static bool AddFreeVipRecord(ulong steamId, string group, TimeSpan duration)
-    {
-        try
-        {
-            return AddFreeVipRecordAsync(steamId, group, duration).GetAwaiter().GetResult();
-        }
-        catch (Exception ex)
-        {
-            VIPCore.Instance.Logger.LogError($"Failed to add free VIP record for SteamID {steamId}: {ex.Message}");
+            VIPCore.Instance.Logger.LogError($"Database connection failed while granting free VIP for SteamID {steamId}: {ex.Message}");
             return false;
         }
     }
 
-    public static List<string> GetAvailableFreeVipGroups(ulong steamId)
+    private static async Task<HashSet<string>> GetUsedFreeVipGroupsAsync(ulong steamId)
     {
         try
         {
-            return GetAvailableFreeVipGroupsAsync(steamId).GetAwaiter().GetResult();
+            using var connection = await ConnectAsync();
+            var usedGroups = await connection.QueryAsync<string>(
+                "SELECT GroupName FROM used_free_vips WHERE SteamID = @SteamID", new { SteamID = steamId });
+            return new HashSet<string>(usedGroups, StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {
-            VIPCore.Instance.Logger.LogError($"Failed to get available free VIP groups for SteamID {steamId}: {ex.Message}");
-            return new List<string>();
+            VIPCore.Instance.Logger.LogError($"Failed to get used free VIP groups for {steamId}: {ex.Message}");
+            return new HashSet<string>();
         }
+    }
+
+    private static async Task RemoveExpiredFreeVipsAsync()
+    {
+        try
+        {
+            using var connection = await ConnectAsync();
+
+            var expiredVips = (await connection.QueryAsync<ExpiredVipInfo>(
+                "SELECT SteamID, GroupName FROM free_vips WHERE DateExpire <= @Now", new { Now = DateTime.UtcNow })).ToList();
+
+            if (!expiredVips.Any()) return;
+
+            var expiredSteamIds = expiredVips.Select(v => v.SteamID).ToList();
+
+            int rowsAffected = await connection.ExecuteAsync(
+                "DELETE FROM free_vips WHERE SteamID IN @SteamIDs", new { SteamIDs = expiredSteamIds });
+
+            if (rowsAffected > 0)
+            {
+                VIPCore.Instance.Logger.LogInformation($"Removed {rowsAffected} expired free VIP records from the database.");
+                Server.NextFrame(() =>
+                {
+                    foreach (var vipInfo in expiredVips)
+                    {
+                        VIPManager.RemovePlayerVip(vipInfo.SteamID);
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            VIPCore.Instance.Logger.LogError($"Failed to remove expired Free VIPs: {ex.Message}");
+        }
+    }
+
+    // ========= PUBLIC SYNCHRONOUS WRAPPERS =========
+
+    public static bool GrantFreeVip(ulong steamId, string group, TimeSpan duration)
+    {
+        // Task.Run().Result will run the async method on a background thread
+        // and block the calling thread until it completes.
+        return Task.Run(() => GrantFreeVipAsync(steamId, group, duration)).Result;
+    }
+
+    public static HashSet<string> GetUsedFreeVipGroups(ulong steamId)
+    {
+        return Task.Run(() => GetUsedFreeVipGroupsAsync(steamId)).Result;
+    }
+
+    /// <summary>
+    /// Synchronous wrapper for removing expired free VIPs.
+    /// </summary>
+    public static void RemoveExpiredFreeVips()
+    {
+        _ = RemoveExpiredFreeVipsAsync();
     }
     // Synchronous wrappers for feature states
     public static FeatureState GetPlayerFeatureState(ulong steamId, string featureName)
@@ -715,4 +811,9 @@ public static class Database
             return null;
         }
     }
+}
+public class ExpiredVipInfo
+{
+    public ulong SteamID { get; set; }
+    public string GroupName { get; set; } = string.Empty;
 }

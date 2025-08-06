@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VipCoreApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+248949724190648a0d831f8d47091560b8351e7c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4bee86a676d9f8ef7a05d946202d447dd368dbc3")]
 [assembly: System.Reflection.AssemblyProductAttribute("VipCoreApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VipCoreApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
