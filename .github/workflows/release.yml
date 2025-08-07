@@ -68,11 +68,14 @@ jobs:
           echo "Checking for project file: $CSPROJ_FILE"
           if [ -f "$CSPROJ_FILE" ]; then
             echo "Building module: $MODULE_NAME"
-            dotnet build "$CSPROJ_FILE" --configuration Release --no-restore
-            
-            # Show what was built for this module
-            echo "Checking BuildOutput after building $MODULE_NAME:"
-            ls -la "BuildOutput/plugins/$MODULE_NAME/" 2>/dev/null || echo "No output found for $MODULE_NAME"
+            if dotnet build "$CSPROJ_FILE" --configuration Release --no-restore; then
+              echo "✅ Successfully built $MODULE_NAME"
+              # Show what was built for this module
+              echo "Checking BuildOutput after building $MODULE_NAME:"
+              ls -la "BuildOutput/plugins/$MODULE_NAME/" 2>/dev/null || echo "No output found for $MODULE_NAME"
+            else
+              echo "❌ Failed to build $MODULE_NAME, but continuing with other modules..."
+            fi
           else
             echo "Warning: Project file not found for $MODULE_NAME"
           fi
