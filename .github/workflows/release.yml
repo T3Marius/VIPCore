@@ -115,17 +115,14 @@ jobs:
         # Fetch all tags to ensure we have the complete list
         git fetch --tags --force
         
-        # Get all tags sorted by version in descending order
-        ALL_TAGS=$(git tag -l | sort -V -r)
-        echo "All tags: $ALL_TAGS"
+        # Get all tags sorted by version in descending order, excluding the current tag
+        ALL_TAGS=$(git tag -l | grep -v "^${CURRENT_TAG}$" | sort -V -r)
+        echo "All tags (excluding current): $ALL_TAGS"
         
-        # Find the previous tag (the second in the sorted list, since the first should be the current one)
-        LAST_TAG=$(echo "$ALL_TAGS" | sed -n '2p')
+        # Get the most recent tag (first in the list after excluding current)
+        LAST_TAG=$(echo "$ALL_TAGS" | head -n 1)
         
-        # If that doesn't work, try getting tags excluding the current one
-        if [ -z "$LAST_TAG" ]; then
-          LAST_TAG=$(git tag -l | grep -v "^${CURRENT_TAG}$" | sort -V | tail -n 1)
-        fi
+        echo "Previous tag found: $LAST_TAG"
         
         if [ -n "$LAST_TAG" ] && [ "$LAST_TAG" != "$CURRENT_TAG" ]; then
           echo "Found previous tag: $LAST_TAG"
