@@ -31,7 +31,6 @@ public class VIP_DecoyTeleport : IVipFeatureBase
 
     public void OnFeatureLoaded()
     {
-        // Feature loaded logic here
 
     }
 
