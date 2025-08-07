@@ -36,16 +36,38 @@ jobs:
       
     - name: Build solution
       run: |
+        # Ensure BuildOutput structure exists before building
+        mkdir -p BuildOutput/plugins
+        mkdir -p BuildOutput/shared
+        
+        # Create specific directories for each module
+        for module in Modules/*/; do
+          if [ -f "${module}*.csproj" ]; then
+            MODULE_NAME=$(basename "$module")
+            mkdir -p "BuildOutput/plugins/$MODULE_NAME"
+            echo "Created directory: BuildOutput/plugins/$MODULE_NAME"
+          fi
+        done
+        
         dotnet build VIPCore/VIPCore.csproj --configuration Release --no-restore
         dotnet build VIPCore-API/VipCoreApi.csproj --configuration Release --no-restore
         
         # Build all VIP modules
         for module in Modules/*/; do
           if [ -f "${module}*.csproj" ]; then
-            echo "Building module: $module"
+            MODULE_NAME=$(basename "$module")
+            echo "Building module: $MODULE_NAME"
             dotnet build "${module}"*.csproj --configuration Release --no-restore
+            
+            # Show what was built for this module
+            echo "Checking BuildOutput after building $MODULE_NAME:"
+            ls -la "BuildOutput/plugins/$MODULE_NAME/" 2>/dev/null || echo "No output found for $MODULE_NAME"
           fi
         done
+        
+        # Show complete BuildOutput structure after all builds
+        echo "Complete BuildOutput structure after builds:"
+        find BuildOutput -type f 2>/dev/null || echo "BuildOutput is empty"
       
     - name: Create build artifacts
       run: |
