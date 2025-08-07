@@ -4,6 +4,7 @@ using System.Text.Json;
 using VipCoreApi;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
+using Microsoft.Extensions.Logging;
 
 namespace VIPCore;
 
@@ -39,7 +40,7 @@ public class VIP_DecoyTeleport : IVipFeatureBase
         _plugin = plugin;
 
         _plugin.RegisterListener<Listeners.OnEntityCreated>(OnEntityCreated);
-        _plugin.RegisterEventHandler<EventDecoyDetonate>(OnDecoyDetonate);
+        _plugin.RegisterEventHandler<EventDecoyStarted>(OnDecoyFiring);
         _plugin.RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
         _plugin.RegisterEventHandler<EventRoundStart>(OnRoundStart);
     }
@@ -69,13 +70,13 @@ public class VIP_DecoyTeleport : IVipFeatureBase
 
         return HookResult.Continue;
     }
-    private HookResult OnDecoyDetonate(EventDecoyDetonate @event, GameEventInfo info)
+    private HookResult OnDecoyFiring(EventDecoyStarted @event, GameEventInfo info)
     {
         CCSPlayerController? player = @event.Userid;
         if (player == null)
             return HookResult.Continue;
 
-        if (_decoyTeleports.TryGetValue(player.Slot, out var decoy) && decoy != null && decoy.Globalname == "decoy_teleport")
+        if (_decoyTeleports.TryGetValue(player.Slot, out var decoy))
         {
             _decoyTeleports.Remove(player.Slot);
 
@@ -94,26 +95,39 @@ public class VIP_DecoyTeleport : IVipFeatureBase
     }
     private void OnEntityCreated(CEntityInstance entity)
     {
-        if (entity.DesignerName != "weapon_decoy")
-            return;
+        Server.NextFrame(() =>
+        {
+            if (entity.DesignerName != "decoy_projectile")
+                return;
 
-        CDecoyProjectile decoy = new CDecoyProjectile(entity.Handle);
+            var decoy = entity.As<CDecoyProjectile>();
 
-        if (decoy == null)
-            return;
+            if (decoy == null)
+            {
+                _plugin.Logger.LogInformation("Decoy is null.");
+                return;
+            }
 
-        var thrower = decoy.Thrower;
-        if (thrower.Value == null)
-            return;
+            CCSPlayerPawn? pawn = decoy.OriginalThrower.Value;
 
-        CCSPlayerController? player = thrower.Value.OriginalController.Value;
-        if (player == null || !VipApi.IsPlayerVip(player.SteamID) || !VipApi.IsPlayerFeatureEnabled(player.SteamID, FeatureName))
-            return;
+            if (pawn == null)
+            {
+                _plugin.Logger.LogInformation("pawn is null");
+                return;
+            }
 
-        decoy.Globalname = "decoy_teleport";
+            CCSPlayerController? player = pawn.OriginalController.Value;
+            if (player == null || !VipApi.IsPlayerVip(player.SteamID) || !VipApi.IsPlayerFeatureEnabled(player.SteamID, FeatureName))
+            {
+                _plugin.Logger.LogInformation("Player is null");
+                return;
+            }
 
-        if (!_decoyTeleports.ContainsKey(player.Slot))
-            _decoyTeleports.Add(player.Slot, decoy);
+            if (!_decoyTeleports.ContainsKey(player.Slot))
+            {
+                _decoyTeleports.Add(player.Slot, decoy);
+            }
+        });
 
     }
 }
