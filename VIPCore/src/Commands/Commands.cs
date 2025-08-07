@@ -116,9 +116,10 @@ public static class Commands
                 {
                     string friendlyGroupName = menuText.Split('(')[0].Trim();
                     p.SendChatLocalizedMessage("vip.FreeVipGranted", friendlyGroupName, duration);
+                    MenuManager.CloseMenu(p);
                 }
-
                 MenuManager.CloseMenu(p);
+
             });
         }
 
