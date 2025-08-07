@@ -28,9 +28,14 @@ jobs:
         
         # Restore all VIP modules
         for module in Modules/*/; do
-          if [ -f "${module}*.csproj" ]; then
-            echo "Restoring module: $module"
-            dotnet restore "${module}"*.csproj
+          MODULE_NAME=$(basename "$module")
+          CSPROJ_FILE="${module}${MODULE_NAME}.csproj"
+          echo "Checking for project file: $CSPROJ_FILE"
+          if [ -f "$CSPROJ_FILE" ]; then
+            echo "Restoring module: $MODULE_NAME"
+            dotnet restore "$CSPROJ_FILE"
+          else
+            echo "Warning: Project file not found for $MODULE_NAME"
           fi
         done
       
@@ -42,10 +47,14 @@ jobs:
         
         # Create specific directories for each module
         for module in Modules/*/; do
-          if [ -f "${module}*.csproj" ]; then
-            MODULE_NAME=$(basename "$module")
+          MODULE_NAME=$(basename "$module")
+          CSPROJ_FILE="${module}${MODULE_NAME}.csproj"
+          echo "Checking for project file: $CSPROJ_FILE"
+          if [ -f "$CSPROJ_FILE" ]; then
             mkdir -p "BuildOutput/plugins/$MODULE_NAME"
             echo "Created directory: BuildOutput/plugins/$MODULE_NAME"
+          else
+            echo "Warning: Project file not found for $MODULE_NAME"
           fi
         done
         
@@ -54,14 +63,18 @@ jobs:
         
         # Build all VIP modules
         for module in Modules/*/; do
-          if [ -f "${module}*.csproj" ]; then
-            MODULE_NAME=$(basename "$module")
+          MODULE_NAME=$(basename "$module")
+          CSPROJ_FILE="${module}${MODULE_NAME}.csproj"
+          echo "Checking for project file: $CSPROJ_FILE"
+          if [ -f "$CSPROJ_FILE" ]; then
             echo "Building module: $MODULE_NAME"
-            dotnet build "${module}"*.csproj --configuration Release --no-restore
+            dotnet build "$CSPROJ_FILE" --configuration Release --no-restore
             
             # Show what was built for this module
             echo "Checking BuildOutput after building $MODULE_NAME:"
             ls -la "BuildOutput/plugins/$MODULE_NAME/" 2>/dev/null || echo "No output found for $MODULE_NAME"
+          else
+            echo "Warning: Project file not found for $MODULE_NAME"
           fi
         done
         
@@ -118,8 +131,9 @@ jobs:
           
           # Copy all module build outputs
           for module in Modules/*/; do
-            if [ -f "${module}*.csproj" ]; then
-              MODULE_NAME=$(basename "$module")
+            MODULE_NAME=$(basename "$module")
+            CSPROJ_FILE="${module}${MODULE_NAME}.csproj"
+            if [ -f "$CSPROJ_FILE" ]; then
               MODULE_BIN="${module}bin/Release/net8.0"
               echo "Checking module build output: $MODULE_BIN"
               
