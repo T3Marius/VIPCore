@@ -25,11 +25,27 @@ jobs:
       run: |
         dotnet restore VIPCore/VIPCore.csproj
         dotnet restore VIPCore-API/VipCoreApi.csproj
+        
+        # Restore all VIP modules
+        for module in Modules/*/; do
+          if [ -f "${module}*.csproj" ]; then
+            echo "Restoring module: $module"
+            dotnet restore "${module}"*.csproj
+          fi
+        done
       
     - name: Build solution
       run: |
         dotnet build VIPCore/VIPCore.csproj --configuration Release --no-restore
         dotnet build VIPCore-API/VipCoreApi.csproj --configuration Release --no-restore
+        
+        # Build all VIP modules
+        for module in Modules/*/; do
+          if [ -f "${module}*.csproj" ]; then
+            echo "Building module: $module"
+            dotnet build "${module}"*.csproj --configuration Release --no-restore
+          fi
+        done
       
     - name: Create build artifacts
       run: |
@@ -94,11 +110,24 @@ jobs:
       run: |
         # Get the current tag being released
         CURRENT_TAG="${{ steps.version.outputs.VERSION }}"
+        echo "Current tag: $CURRENT_TAG"
         
-        # Get all tags sorted by version, excluding the current tag
-        LAST_TAG=$(git tag -l | grep -v "^${CURRENT_TAG}$" | sort -V | tail -n 1)
+        # Fetch all tags to ensure we have the complete list
+        git fetch --tags --force
         
-        if [ -n "$LAST_TAG" ]; then
+        # Get all tags sorted by version in descending order
+        ALL_TAGS=$(git tag -l | sort -V -r)
+        echo "All tags: $ALL_TAGS"
+        
+        # Find the previous tag (the second in the sorted list, since the first should be the current one)
+        LAST_TAG=$(echo "$ALL_TAGS" | sed -n '2p')
+        
+        # If that doesn't work, try getting tags excluding the current one
+        if [ -z "$LAST_TAG" ]; then
+          LAST_TAG=$(git tag -l | grep -v "^${CURRENT_TAG}$" | sort -V | tail -n 1)
+        fi
+        
+        if [ -n "$LAST_TAG" ] && [ "$LAST_TAG" != "$CURRENT_TAG" ]; then
           echo "Found previous tag: $LAST_TAG"
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD)
           COMPARE_LINK="**Full Changelog**: https://github.com/${{ github.repository }}/compare/$LAST_TAG...${{ steps.version.outputs.VERSION }}"
