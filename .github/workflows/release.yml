@@ -55,40 +55,62 @@ jobs:
         echo "Checking build outputs..."
         find . -name "*.dll" -type f
         
-        # Check if BuildOutput exists and copy it
-        if [ -d "BuildOutput" ] && [ "$(ls -A BuildOutput)" ]; then
+        # Show what's in BuildOutput before copying
+        echo "BuildOutput contents before build:"
+        ls -la BuildOutput/ || echo "BuildOutput doesn't exist"
+        ls -la BuildOutput/plugins/ || echo "BuildOutput/plugins doesn't exist"
+        
+        # Check if BuildOutput has actual plugin content (not just .gitkeep)
+        BUILDOUTPUT_HAS_PLUGINS=$(find BuildOutput -name "*.dll" 2>/dev/null | wc -l)
+        echo "Found $BUILDOUTPUT_HAS_PLUGINS DLL files in BuildOutput"
+        
+        if [ "$BUILDOUTPUT_HAS_PLUGINS" -gt 0 ]; then
           echo "Copying BuildOutput structure..."
           cp -r BuildOutput/* release-artifacts/
           echo "BuildOutput copied successfully!"
           ls -la release-artifacts/
         else
-          echo "BuildOutput not found! Falling back to bin directories..."
+          echo "BuildOutput has no built plugins! Building modules individually..."
           
           # Copy VIPCore build output
           if [ -d "VIPCore/bin/Release/net8.0" ] && [ "$(ls -A VIPCore/bin/Release/net8.0)" ]; then
             echo "Copying VIPCore build output..."
-            mkdir -p release-artifacts/plugins
-            cp -r VIPCore/bin/Release/net8.0 release-artifacts/plugins/VIPCore
+            mkdir -p release-artifacts/plugins/VIPCore
+            cp -r VIPCore/bin/Release/net8.0/* release-artifacts/plugins/VIPCore/
             ls -la release-artifacts/plugins/VIPCore/
           else
             echo "VIPCore build output not found or empty!"
-            echo "Contents of VIPCore/bin:"
-            find VIPCore -name "bin" -exec ls -la {} \; 2>/dev/null || echo "No bin folder found"
             exit 1
           fi
           
           # Copy VIPCore-API build output to shared folder
           if [ -d "VIPCore-API/bin/Release/net8.0" ] && [ "$(ls -A VIPCore-API/bin/Release/net8.0)" ]; then
             echo "Copying VIPCore-API build output..."
-            mkdir -p release-artifacts/shared
-            cp -r VIPCore-API/bin/Release/net8.0 release-artifacts/shared/VipCoreApi
+            mkdir -p release-artifacts/shared/VipCoreApi
+            cp -r VIPCore-API/bin/Release/net8.0/* release-artifacts/shared/VipCoreApi/
             ls -la release-artifacts/shared/VipCoreApi/
           else
             echo "VIPCore-API build output not found or empty!"
-            echo "Contents of VIPCore-API/bin:"
-            find VIPCore-API -name "bin" -exec ls -la {} \; 2>/dev/null || echo "No bin folder found"
             exit 1
           fi
+          
+          # Copy all module build outputs
+          for module in Modules/*/; do
+            if [ -f "${module}*.csproj" ]; then
+              MODULE_NAME=$(basename "$module")
+              MODULE_BIN="${module}bin/Release/net8.0"
+              echo "Checking module build output: $MODULE_BIN"
+              
+              if [ -d "$MODULE_BIN" ] && [ "$(ls -A "$MODULE_BIN")" ]; then
+                echo "Copying $MODULE_NAME build output..."
+                mkdir -p "release-artifacts/plugins/$MODULE_NAME"
+                cp -r "$MODULE_BIN"/* "release-artifacts/plugins/$MODULE_NAME/"
+                ls -la "release-artifacts/plugins/$MODULE_NAME/"
+              else
+                echo "Warning: $MODULE_NAME build output not found or empty"
+              fi
+            fi
+          done
         fi
         
         # Show what we have in release artifacts
@@ -124,7 +146,7 @@ jobs:
         
         echo "Previous tag found: $LAST_TAG"
         
-        if [ -n "$LAST_TAG" ] && [ "$LAST_TAG" != "$CURRENT_TAG" ]; then
+        if [ -n "$LAST_TAG" ]; then
           echo "Found previous tag: $LAST_TAG"
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD)
           COMPARE_LINK="**Full Changelog**: https://github.com/${{ github.repository }}/compare/$LAST_TAG...${{ steps.version.outputs.VERSION }}"
